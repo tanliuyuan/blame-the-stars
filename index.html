@@ -138,7 +138,7 @@
       document.getElementById('asof').textContent = `Sky last interrogated ${now.toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}`;
       const verdict = document.getElementById('verdict');
       verdict.replaceChildren(...(excuses.length
-        ? [el('span', 'count', excuses.length), el('p', '', `cosmic alibi${excuses.length > 1 ? 's' : ''} on file`), el('p', 'aside', 'Whatever happened, the universe would like to take full responsibility.')]
+        ? [el('span', 'count', excuses.length), el('p', '', `cosmic reason${excuses.length > 1 ? 's' : ''} why your life is in shambles right now`), el('p', 'aside', 'Whatever happened, the universe would like to take full responsibility.')]
         : [el('p', '', TEASES[Math.floor(Math.random() * TEASES.length)])]));
       document.getElementById('excuses').replaceChildren(...excuses.map(card));
     }
