@@ -2,7 +2,7 @@
 
 Every real astrological excuse for whatever is going wrong in your life right now.
 
-Live at https://blamethestars-sage.vercel.app
+Live at https://blamethestars.space
 
 The planet positions are real: they're calculated in the browser with
 [Astronomy Engine](https://github.com/cosinekitty/astronomy). The blame is traditional: each excuse is

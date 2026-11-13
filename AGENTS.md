@@ -24,7 +24,9 @@ Read `README.md` first for what the app does and how to run it.
   can break a test.
 - Excuse `id`s key both `WHY` in `excuses.js` and `LOOK` (category label and symbol) in `index.html`. A new
   excuse needs an entry in both.
-- Glyphs get `︎` appended so iOS doesn't render ♀ ♂ as emoji. Keep it.
+- Glyphs get `\uFE0E` (the text variation selector) appended so iOS doesn't render ♀ ♂ as emoji. Keep it.
+- `og:image` and the canonical link in `index.html` are absolute URLs on the live domain. Update both if the
+  domain changes. `og.png` is a static 1200×630 render; regenerate it if the branding changes.
 
 ## Verifying a change
 
