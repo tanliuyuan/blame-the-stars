@@ -1,0 +1,14 @@
+{
+  "name": "blame-the-stars",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "TZ=America/New_York node test.js"
+  },
+  "devDependencies": {
+    "astronomy-engine": "2.1.19"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

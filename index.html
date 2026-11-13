@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Blame the Stars</title>
+  <script type="importmap">{"imports": {"astronomy-engine": "https://cdn.jsdelivr.net/npm/astronomy-engine@2.1.19/esm/astronomy.js"}}</script>
+  <style>
+    :root { --bg: #f7f5fb; --fg: #1d1a26; --muted: #5d5870; --card: #fff; --accent: #6b3fd4; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #0f0d17; --fg: #ece9f5; --muted: #a39dba; --card: #1b1828; --accent: #b79cff; } }
+    body { margin: 0; background: var(--bg); color: var(--fg); font: 17px/1.5 system-ui, sans-serif; }
+    main { max-width: 40rem; margin: 0 auto; padding: 2rem 1rem; }
+    h1 { margin: 0; color: var(--accent); }
+    .sub, .note, .detail { color: var(--muted); }
+    ul { list-style: none; padding: 0; }
+    li { background: var(--card); border-radius: 12px; padding: 1rem 1.25rem; margin: 0 0 1rem; }
+    h2 { font-size: 1.15rem; margin: 0; }
+    .detail { margin: .25rem 0 .5rem; font-size: .95rem; }
+    .why { margin: 0; }
+    #status { font-size: 1.25rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Blame the Stars</h1>
+    <p class="sub">Every real astrological excuse for whatever is going wrong right now.</p>
+    <p id="status" aria-live="polite">Checking the sky…</p>
+    <ul id="excuses"></ul>
+    <p class="note" id="note"></p>
+    <p class="note">Planet positions are calculated in your browser with Astronomy Engine. Your location never leaves your device.</p>
+  </main>
+  <script type="module">
+    import { findExcuses } from './excuses.js';
+
+    const TEASES = [
+      'Nothing is retrograde, there are no eclipses, and the Moon is behaving. This one might be on you.',
+      'The planets checked their alibis and they are all clean. Have you considered it might be your fault?',
+      'The sky has nothing to answer for right now. The mirror is that way.',
+    ];
+
+    function render(coords) {
+      const excuses = findExcuses(new Date(), coords);
+      document.getElementById('status').textContent = excuses.length
+        ? `Good news: ${excuses.length} cosmic excuse${excuses.length > 1 ? 's' : ''} apply right now.`
+        : TEASES[Math.floor(Math.random() * TEASES.length)];
+      document.getElementById('excuses').replaceChildren(...excuses.map((e) => {
+        const li = document.createElement('li');
+        for (const [tag, cls, text] of [['h2', '', e.title], ['p', 'detail', e.detail], ['p', 'why', e.why]]) {
+          if (!text) continue;
+          const el = li.appendChild(document.createElement(tag));
+          el.className = cls;
+          el.textContent = text;
+        }
+        return li;
+      }));
+      document.getElementById('note').textContent = coords ? '' : 'Share your location to also check Rahu Kalam, which depends on your local sunrise and sunset.';
+    }
+
+    render(null); // show results right away; some browsers never answer if the location prompt is ignored
+    navigator.geolocation?.getCurrentPosition((p) => render(p.coords), () => {}, { maximumAge: 36e5 });
+  </script>
+</body>
+</html>
