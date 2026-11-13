@@ -12,21 +12,21 @@ const FALL = { Sun: [6], Moon: [7], Mercury: [11], Venus: [5], Mars: [3], Jupite
 const RAHU_PART = [8, 2, 7, 5, 6, 4, 3];
 
 export const WHY = {
-  'retrograde:Mercury': 'Mercury, named for the messenger god, rules communication, travel and contracts. When it appears to move backward, astrologers say all three go haywire: lost emails, delayed flights, deals that fall apart.',
-  'shadow:Mercury': 'Astrologers say Mercury retrograde is felt from the moment Mercury first crosses the stretch of sky it will later retrace (pre-shadow) until it has crossed it for the third time (post-shadow).',
-  'retrograde:Venus': 'Venus rules love, beauty and money. Retrograde Venus is blamed for exes reappearing, relationships souring, and regrettable haircuts and purchases.',
-  'retrograde:Mars': 'Mars, the god of war, rules drive and aggression. Retrograde Mars is said to stall plans and turn that energy into frustration, arguments and accidents.',
-  'retrograde:Saturn': 'Saturn is the "greater malefic" of traditional astrology and rules limits, duty and hard lessons. Retrograde, it is said to drag old burdens and unfinished business back into your life.',
-  square: 'Since Ptolemy, planets 90° apart have been read as hostile: two agendas at cross purposes, producing friction and obstacles.',
-  opposition: 'Planets 180° apart sit on opposite sides of the sky. Tradition reads this as a hostile aspect: tug-of-war, confrontation, things pulling apart.',
-  conjunction: 'Mars (the "lesser malefic") and Saturn (the "greater malefic") are the two troublemakers of traditional astrology. A planet sitting right on top of one is said to be corrupted by it.',
-  detriment: 'A planet in the sign opposite one it rules is in "detriment": a fish out of water, working against its own nature.',
-  fall: 'A planet in the sign opposite its exaltation is in its "fall": at its weakest and least able to do any good.',
-  'full-moon': 'Folk belief in many cultures ties the full moon to madness ("lunatic" comes from Luna), and nurses, police and bartenders still swear the night gets weird.',
-  eclipse: 'Eclipses have been bad omens for millennia. Babylonian astrologers read them as threats to the king, and in Hindu myth the demon Rahu swallows the Sun or Moon.',
-  'eclipse-season': 'Modern astrologers treat the weeks around an eclipse as "eclipse season": a time of sudden endings and upheaval, when you are told not to start anything important.',
-  voc: 'Between its last major aspect in a sign and its move into the next, the Moon is "void of course". Astrologers since William Lilly say whatever you start now comes to nothing.',
-  'rahu-kalam': 'Vedic astrology splits each day\'s daylight into eight parts and gives one to Rahu, the shadow planet that causes eclipses. Many people in India still won\'t start anything important during Rahu Kalam.',
+  'retrograde:Mercury': 'Mercury, messenger of the gods, runs communication, travel and contracts. Right now it looks like it is moonwalking backward across the sky, which astrologers say breaks all three. That reply-all? Mercury. The delayed flight? Mercury. The printer? Honestly, also Mercury.',
+  'shadow:Mercury': 'Mercury retrograde comes with an opening act and an encore. Many modern astrologers say you feel it from the first time Mercury crosses the patch of sky it will retrace until it finally leaves that patch for good.',
+  'retrograde:Venus': 'Venus runs love, beauty and money, and when she backs up, so does everything in her department. Astrologers blame retrograde Venus for exes texting "hey stranger", relationships going sideways, and haircuts you will spend months growing out.',
+  'retrograde:Mars': 'Mars is the god of war, so he handles drive, anger and getting stuff done. Retrograde, he is said to put all of it in reverse: plans stall, tempers flare, and you stub the same toe twice.',
+  'retrograde:Saturn': 'Saturn is the "greater malefic" of traditional astrology: the cosmic strict principal in charge of limits, duty and hard lessons. Retrograde, it marches old responsibilities and unfinished business out of detention and back into your life.',
+  square: 'Planets 90° apart are "square", which Ptolemy was already calling "disharmonious" in the 2nd century. Two planets with conflicting agendas are elbowing each other, and you happen to be standing between them.',
+  opposition: 'These two are glaring at each other from opposite sides of the sky. Ptolemy filed it with the square as "disharmonious": tug-of-war, standoffs, and you, unfortunately, as the rope.',
+  conjunction: 'Mars (the "lesser malefic") and Saturn (the "greater malefic") are the official troublemakers of traditional astrology. Traditional astrologers call a planet this close to one "afflicted". It has fallen in with the wrong crowd.',
+  detriment: 'A planet in the sign opposite the one it rules is in "detriment": stuck in the wrong office, with the wrong tools, in a bad mood. Expect it to phone it in.',
+  fall: 'A planet in the sign opposite its exaltation is in its "fall". Astrologically speaking, it has hit rock bottom and is in no shape to help you.',
+  'full-moon': 'People have blamed the full moon for madness since antiquity. Pliny the Elder thought it made the brain unnaturally moist, and "lunatic" comes from Luna. Plenty of nurses and police officers still swear the night gets weird. Astrologers add that the Sun and Moon are in opposition, glaring at each other from opposite sides of the sky.',
+  eclipse: 'Eclipses have terrified people for millennia. Babylonian astrologers read them as a threat to the king, and in Hindu myth Rahu, a demon reduced to an immortal severed head, swallows the Sun or Moon, which slips back out through his neck. Your day is going great by comparison.',
+  'eclipse-season': '"Eclipse season" is a real astronomical term for the roughly five weeks when eclipses can happen. Modern astrologers read it as a stretch of sudden endings and plot twists, and the usual advice is to start nothing important. Feel free to forward this to your boss.',
+  voc: 'Between its last major aspect and its move into the next sign, the Moon is "void of course", basically on its lunch break. William Lilly warned in 1647 that business seldom goes well while the Moon is void, and modern astrologers say whatever you start now comes to nothing. Great time for a nap.',
+  'rahu-kalam': 'Hindu astrology slices each day\'s daylight into eight parts and hands one to Rahu, the shadow planet who swallows the Sun or Moon during eclipses. Many people in India, especially in the South, still refuse to start anything important during Rahu Kalam. Put the important thing down.',
 };
 
 export const lon = (body, date) => (body === 'Moon' ? A.EclipticGeoMoon(date).lon : A.Ecliptic(A.GeoVector(body, date, true)).elon);
@@ -55,9 +55,9 @@ function retrogrades(date) {
       const nextR = flip(body, date, 1), nextD = flip(body, nextR, 1);
       const lastD = flip(body, date, -1), lastR = flip(body, new Date(+lastD - DAY), -1);
       if (between(l, lon(body, nextD), lon(body, nextR))) {
-        out.push({ id: 'shadow:Mercury', title: 'Mercury is in its pre-shadow', detail: `Retrograde starts ${fmtDay(nextR)}` });
+        out.push({ id: 'shadow:Mercury', title: 'Mercury is in its pre-shadow', detail: `The main event starts ${fmtDay(nextR)}` });
       } else if (between(l, lon(body, lastD), lon(body, lastR))) {
-        out.push({ id: 'shadow:Mercury', title: 'Mercury is in its post-shadow', detail: `Retrograde ended ${fmtDay(lastD)}` });
+        out.push({ id: 'shadow:Mercury', title: 'Mercury is in its post-shadow', detail: `Officially over since ${fmtDay(lastD)}. Emotionally, not yet.` });
       }
     }
   }
@@ -70,7 +70,7 @@ function aspects(date) {
   PLANETS.forEach((a, i) => PLANETS.slice(i + 1).forEach((b) => {
     const sep = Math.abs(wrap(l[a] - l[b]));
     const hit = (kind, exact) => Math.abs(sep - exact) <= ORB
-      && out.push({ id: kind, title: `${a} ${{ square: 'square', opposition: 'opposite', conjunction: 'conjunct' }[kind]} ${b}`, detail: `${Math.abs(sep - exact).toFixed(1)}° from exact` });
+      && out.push({ id: kind, title: `${a} ${{ square: 'square', opposition: 'opposite', conjunction: 'conjunct' }[kind]} ${b}`, detail: `${Math.abs(sep - exact).toFixed(1)}° from exact. Close enough to count.` });
     hit('square', 90);
     hit('opposition', 180);
     if ([a, b].some((p) => p === 'Mars' || p === 'Saturn')) hit('conjunction', 0);
@@ -92,7 +92,7 @@ function debilities(date) {
 function moonStuff(date) {
   const out = [];
   if (Math.abs(A.MoonPhase(date) - 180) <= 12) { // the Moon moves ~12° a day against the Sun, so within about a day of full
-    out.push({ id: 'full-moon', title: 'It\'s a full moon', detail: `Exactly full ${fmt(A.SearchMoonPhase(180, new Date(+date - 2 * DAY), 4).date)}` });
+    out.push({ id: 'full-moon', title: 'It\'s a full moon', detail: `Peak weirdness ${fmt(A.SearchMoonPhase(180, new Date(+date - 2 * DAY), 4).date)}` });
   }
   const from = new Date(+date - 20 * DAY);
   const near = [['lunar', A.SearchLunarEclipse(from)], ['solar', A.SearchGlobalSolarEclipse(from)]]
@@ -117,7 +117,7 @@ export function voidOfCourse(date) {
     if (prev && cur.some((c, i) => Math.abs(c) < 5 && Math.sign(c) !== Math.sign(prev[i]))) return null;
     prev = cur;
   }
-  return { id: 'voc', title: 'The Moon is void of course', detail: `Until ${fmt(new Date(end))}`, end: new Date(end) };
+  return { id: 'voc', title: 'The Moon is void of course', detail: `Back from lunch ${fmt(new Date(end))}`, end: new Date(end) };
 }
 
 // The day's Rahu Kalam window for an observer, in the runtime's local time zone.
