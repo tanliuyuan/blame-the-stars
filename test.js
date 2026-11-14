@@ -1,7 +1,7 @@
 // Checks against published 2023–2025 ephemeris dates. Run with `npm test` (sets TZ=America/New_York).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { findExcuses, rahuKalam, voidOfCourse, lon } from './excuses.js';
+import { findExcuses, rahuKalam, voidOfCourse, lon, PLANETS, SIGNS, DETRIMENT, FALL, MALEFICS } from './excuses.js';
 
 const has = (iso, id, title = '') => findExcuses(new Date(iso)).some((e) => e.id === id && e.title.includes(title));
 
@@ -47,16 +47,12 @@ test('Rahu Kalam is the 5th eighth of daylight on a Wednesday in NYC', () => {
 
 test('every card back has specific text', async () => {
   const { PAIR, CONJ, DEBILITY } = await import('./details.js');
-  const P = ['Sun', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto'];
   const never = ['Sun-Mercury', 'Sun-Venus', 'Mercury-Venus', 'Neptune-Pluto']; // can't square or oppose in our era
-  P.forEach((a, i) => P.slice(i + 1).forEach((b) => {
+  PLANETS.forEach((a, i) => PLANETS.slice(i + 1).forEach((b) => {
     const key = `${a}-${b}`;
     if (!never.includes(key)) assert.ok(PAIR[key], `PAIR ${key}`);
-    if ([a, b].some((p) => p === 'Mars' || p === 'Saturn')) assert.ok(CONJ[key], `CONJ ${key}`);
+    if ([a, b].some((p) => MALEFICS.includes(p))) assert.ok(CONJ[key], `CONJ ${key}`);
   }));
-  const SIGNS = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
-  const DETRIMENT = { Sun: [10], Moon: [9], Mercury: [8, 11], Venus: [0, 7], Mars: [1, 6], Jupiter: [2, 5], Saturn: [3, 4] };
-  const FALL = { Sun: [6], Moon: [7], Mercury: [11], Venus: [5], Mars: [3], Jupiter: [9], Saturn: [0] };
   for (const [id, table] of [['detriment', DETRIMENT], ['fall', FALL]]) {
     for (const [p, signs] of Object.entries(table)) signs.forEach((s) => assert.ok(DEBILITY[`${id}:${p}:${SIGNS[s]}`], `${id} ${p} ${SIGNS[s]}`));
   }

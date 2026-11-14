@@ -2,13 +2,14 @@ import * as A from 'astronomy-engine';
 import { details } from './details.js';
 
 const DAY = 864e5;
-const SIGNS = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
-const PLANETS = ['Sun', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto'];
+export const SIGNS = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
+export const PLANETS = ['Sun', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto'];
 // shortcut: one 3° orb for every aspect; astrologers use wider, planet-specific orbs. Widen if the site feels too quiet.
 const ORB = 3;
 // Traditional dignities, as sign indexes into SIGNS.
-const DETRIMENT = { Sun: [10], Moon: [9], Mercury: [8, 11], Venus: [0, 7], Mars: [1, 6], Jupiter: [2, 5], Saturn: [3, 4] };
-const FALL = { Sun: [6], Moon: [7], Mercury: [11], Venus: [5], Mars: [3], Jupiter: [9], Saturn: [0] };
+export const DETRIMENT = { Sun: [10], Moon: [9], Mercury: [8, 11], Venus: [0, 7], Mars: [1, 6], Jupiter: [2, 5], Saturn: [3, 4] };
+export const FALL = { Sun: [6], Moon: [7], Mercury: [11], Venus: [5], Mars: [3], Jupiter: [9], Saturn: [0] };
+export const MALEFICS = ['Mars', 'Saturn'];
 // Which eighth of daylight is Rahu Kalam, indexed by Date.getDay() (Sunday = 0).
 const RAHU_PART = [8, 2, 7, 5, 6, 4, 3];
 
@@ -55,10 +56,11 @@ function retrogrades(date) {
       const l = lon(body, date);
       const nextR = flip(body, date, 1), nextD = flip(body, nextR, 1);
       const lastD = flip(body, date, -1), lastR = flip(body, new Date(+lastD - DAY), -1);
-      if (between(l, lon(body, nextD), lon(body, nextR))) {
-        out.push({ id: 'shadow:Mercury', title: 'Mercury is in its pre-shadow', detail: `The main event starts ${fmtDay(nextR)}`, zone: zone(nextD, nextR) });
-      } else if (between(l, lon(body, lastD), lon(body, lastR))) {
-        out.push({ id: 'shadow:Mercury', title: 'Mercury is in its post-shadow', detail: `Officially over since ${fmtDay(lastD)}. Emotionally, not yet.`, zone: zone(lastD, lastR) });
+      const [nd, nr, ld, lr] = [nextD, nextR, lastD, lastR].map((d) => lon(body, d));
+      if (between(l, nd, nr)) {
+        out.push({ id: 'shadow:Mercury', title: 'Mercury is in its pre-shadow', detail: `The main event starts ${fmtDay(nextR)}`, zone: zone(nd, nr) });
+      } else if (between(l, ld, lr)) {
+        out.push({ id: 'shadow:Mercury', title: 'Mercury is in its post-shadow', detail: `Officially over since ${fmtDay(lastD)}. Emotionally, not yet.`, zone: zone(ld, lr) });
       }
     }
   }
@@ -74,7 +76,7 @@ function aspects(date) {
       && out.push({ id: kind, title: `${a} ${{ square: 'square', opposition: 'opposite', conjunction: 'conjunct' }[kind]} ${b}`, detail: `${Math.abs(sep - exact).toFixed(1)}° from exact. Close enough to count.`, a, b });
     hit('square', 90);
     hit('opposition', 180);
-    if ([a, b].some((p) => p === 'Mars' || p === 'Saturn')) hit('conjunction', 0);
+    if ([a, b].some((p) => MALEFICS.includes(p))) hit('conjunction', 0);
   }));
   return out;
 }
@@ -151,5 +153,5 @@ const fmt = (d) => d.toLocaleString(undefined, { dateStyle: 'medium', timeStyle:
 const fmtDay = (d) => d.toLocaleDateString(undefined, { dateStyle: 'medium' });
 const fmtTime = (d) => d.toLocaleTimeString(undefined, { timeStyle: 'short' });
 const deg = (l) => `${Math.floor(l % 30)}° ${SIGNS[sign(l)]}`; // l is already 0–360
-// The arc Mercury retraces, from where it turns direct to where it turned retrograde.
-const zone = (direct, retro) => `from ${deg(lon('Mercury', direct))} to ${deg(lon('Mercury', retro))}`;
+// The arc Mercury retraces, from the longitude where it turns direct to where it turned retrograde.
+const zone = (direct, retro) => `from ${deg(direct)} to ${deg(retro)}`;

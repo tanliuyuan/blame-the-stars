@@ -117,7 +117,6 @@ const ECLIPSE_KIND = {
 };
 
 const ORDINAL = ['', 'first', 'second', 'third', 'fourth', 'fifth', 'sixth', 'seventh', 'eighth'];
-const KIND_WORD = { square: 'square', opposition: 'opposite', conjunction: 'conjunct' };
 
 // Turns one excuse (with the extra fields excuses.js attaches) into [heading, text] sections.
 export function details(e) {
@@ -128,7 +127,7 @@ export function details(e) {
     case 'conjunction': {
       const key = `${e.a}-${e.b}`;
       const why = e.id === 'conjunction' ? CONJ[key] : `${ASPECT[e.id]} ${PAIR[key] ?? ''}`.trim();
-      return [...planets(e.a, e.b), [`Why ${e.a} ${KIND_WORD[e.id]} ${e.b} is trouble`, why]];
+      return [...planets(e.a, e.b), [`Why ${e.title} is trouble`, why]];
     }
     case 'detriment':
     case 'fall':
@@ -140,13 +139,17 @@ export function details(e) {
     case 'full-moon':
       return [...planets('Moon'), ['This full moon', `The Moon is full in ${e.moonSign}, directly across the sky from the Sun in ${e.sunSign}. Astrologers read it as a tug of war between what those two signs stand for, with emotions peaking and things coming to a head. Large studies mostly find no full-moon effect on hospitals or crime, which has not stopped anyone from blaming it.`]];
     case 'eclipse':
-      return [['The eclipse', ECLIPSE[e.type]], ['This eclipse', ECLIPSE_KIND[e.kind] ?? '']];
+      return [['The eclipse', ECLIPSE[e.type]], ['This eclipse', ECLIPSE_KIND[e.kind]]];
     case 'eclipse-season':
       return [['Why eclipses come in seasons', 'Eclipses only happen when a new or full moon lines up with the lunar nodes, the two points where the Moon\'s tilted orbit crosses the Sun\'s path. That alignment comes around about every six months, so there are two eclipse seasons a year. In Vedic astrology those two nodes are Rahu and Ketu, the demon\'s head and body, which is why eclipses get pinned on them.']];
-    case 'voc':
-      return [...planets('Moon'), ['This void', `The Moon is in ${e.sign} and won't make another major aspect before it moves into ${e.next}. ${['Taurus', 'Cancer', 'Sagittarius', 'Pisces'].includes(e.sign)
-        ? `One consolation: Lilly allowed that a void Moon can still get something done in Taurus, Cancer, Sagittarius or Pisces, signs that belong to the benefics. ${e.sign} is one of them, so this is the milder kind.`
-        : `Lilly allowed that a void Moon can still get something done in Taurus, Cancer, Sagittarius or Pisces. ${e.sign} isn't one of them, so this is the full-strength version.`}`]];
+    case 'voc': {
+      const mild = ['Taurus', 'Cancer', 'Sagittarius', 'Pisces'];
+      const lilly = `Lilly allowed that a void Moon can still get something done in ${mild.slice(0, -1).join(', ')} or ${mild.at(-1)}`;
+      const verdict = mild.includes(e.sign)
+        ? `One consolation: ${lilly}, signs where the benefics, Venus and Jupiter, are strong. ${e.sign} is one of them, so this is the milder kind.`
+        : `${lilly}. ${e.sign} isn't one of them, so this is the full-strength version.`;
+      return [...planets('Moon'), ['This void', `The Moon is in ${e.sign} and won't make another major aspect before it moves into ${e.next}. ${verdict}`]];
+    }
     case 'rahu-kalam':
       return [
         ['Rahu', 'When the gods and demons churned the ocean for the nectar of immortality, the demon Svarbhanu slipped in among the gods and took a sip. The Sun and Moon spotted him and told Vishnu, who cut off his head, but the nectar had already made it immortal. The head became Rahu, and he has been chasing the Sun and Moon ever since.'],
