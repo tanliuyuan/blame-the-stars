@@ -92,7 +92,9 @@
       font-size: .85rem; line-height: 1.45; text-align: left; box-shadow: 0 8px 30px rgba(0, 0, 0, .45);
       opacity: 0; visibility: hidden; transition: opacity .15s, visibility .15s;
     }
-    .tip:hover [role="tooltip"], .tip.open [role="tooltip"] { opacity: 1; visibility: visible; }
+    .tip.open [role="tooltip"] { opacity: 1; visibility: visible; }
+    /* Hover only where it's real: iOS fakes a sticky :hover on tap, which would keep the tip open. */
+    @media (hover: hover) { .tip:hover [role="tooltip"] { opacity: 1; visibility: visible; } }
     footer { margin-top: 3rem; text-align: center; color: var(--muted); font-size: .8rem; }
 
     @media (max-width: 480px) {
@@ -195,6 +197,8 @@
     const tip = document.querySelector('.tip');
     tip.querySelector('.term').addEventListener('click', () => tip.classList.toggle('open'));
     tip.addEventListener('keydown', (e) => { if (e.key === 'Escape') tip.classList.remove('open'); });
+    // pointerdown, not click: iOS doesn't fire click when you tap plain, non-interactive parts of the page.
+    document.addEventListener('pointerdown', (e) => { if (!tip.contains(e.target)) tip.classList.remove('open'); });
     btn.addEventListener('click', () => {
       btn.disabled = true;
       note.textContent = 'Triangulating your sunrise…';
