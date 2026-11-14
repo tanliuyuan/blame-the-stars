@@ -60,7 +60,7 @@
 
     ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .9rem; }
     li {
-      padding: 1.1rem 1.25rem; cursor: pointer;
+      padding: 1.1rem 1.25rem; cursor: pointer; scroll-margin-top: 1rem;
       background: var(--card); border: 1px solid var(--line); border-radius: 16px; backdrop-filter: blur(6px);
       animation: rise .5s ease both; animation-delay: calc(var(--i) * 70ms);
     }
@@ -169,21 +169,27 @@
       return li;
     }
 
-    // Turn the card edge-on, swap faces (which also resizes it), then turn it the rest of the way.
+    // Turn the card edge-on, swap faces, then turn it the rest of the way. Meanwhile the height glides from the
+    // old face's to the new one's, so the cards below slide instead of jumping.
     const still = matchMedia('(prefers-reduced-motion: reduce)');
+    const MS = 600;
     function flip(li) {
       if (li.dataset.turning) return;
-      const swap = () => {
-        li.classList.toggle('flipped');
-        if (li.getBoundingClientRect().top < 0) li.scrollIntoView(); // a long back shrank away above the screen
-      };
-      if (still.matches) return swap();
+      const from = li.offsetHeight;
+      li.classList.toggle('flipped'); // measure the other face; no paint happens in between
+      const to = li.offsetHeight;
+      li.classList.toggle('flipped');
+      // Flipping back a long card you've scrolled into: bring its top back on screen.
+      if (li.getBoundingClientRect().top < 0) li.scrollIntoView({ behavior: still.matches ? 'auto' : 'smooth' });
+      if (still.matches) return li.classList.toggle('flipped');
       li.dataset.turning = 1;
-      const turn = (from, to, ms, easing, fill) => li.animate([{ transform: `perspective(1000px) rotateY(${from}deg)` }, { transform: `perspective(1000px) rotateY(${to}deg)` }], { duration: ms, easing, fill });
-      const first = turn(0, 90, 150, 'ease-in', 'forwards');
+      li.style.overflow = 'hidden'; // the taller face must not spill out while the card is still short
+      const turn = (a, b, easing, fill) => li.animate([{ transform: `perspective(1200px) rotateY(${a}deg)` }, { transform: `perspective(1200px) rotateY(${b}deg)` }], { duration: MS / 2, easing, fill });
+      li.animate([{ height: `${from}px` }, { height: `${to}px` }], { duration: MS, easing: 'cubic-bezier(.45, 0, .25, 1)' });
+      const first = turn(0, 90, 'cubic-bezier(.5, 0, .9, .6)', 'forwards');
       first.finished.then(() => {
-        swap();
-        turn(-90, 0, 200, 'ease-out').finished.then(() => delete li.dataset.turning);
+        li.classList.toggle('flipped');
+        turn(-90, 0, 'cubic-bezier(.1, .4, .5, 1)').finished.then(() => { li.style.overflow = ''; delete li.dataset.turning; });
         first.cancel();
       });
     }
