@@ -26,9 +26,12 @@
       --serif: 'Cormorant Garamond', Georgia, serif;
     }
     * { box-sizing: border-box; }
-    body {
-      margin: 0; min-height: 100vh; color: var(--ink); font: 16px/1.55 system-ui, -apple-system, sans-serif;
-      background: radial-gradient(ellipse 120% 70% at 50% -10%, var(--dusk), var(--night) 65%) fixed, var(--night);
+    html { background: var(--night); }
+    body { margin: 0; min-height: 100vh; color: var(--ink); font: 16px/1.55 system-ui, -apple-system, sans-serif; }
+    /* The sky glow gets its own fixed layer: a background-attachment: fixed glow makes Safari repaint the page on every scroll. */
+    html::before {
+      content: ''; position: fixed; inset: 0; z-index: -2; pointer-events: none;
+      background: radial-gradient(ellipse 120% 70% at 50% -10%, var(--dusk), var(--night) 65%);
     }
     /* Two tiled star layers; the second one twinkles. */
     body::before, body::after {
@@ -61,12 +64,13 @@
     ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .9rem; }
     li {
       padding: 1.1rem 1.25rem; cursor: pointer; scroll-margin-top: 1rem; overflow: hidden; /* clips the taller face mid-flip */
-      background: var(--card); border: 1px solid var(--line); border-radius: 16px; backdrop-filter: blur(6px);
+      /* A dark base instead of backdrop-filter: blurring over the twinkling stars made Safari scrolling lag. */
+      background-color: color-mix(in srgb, var(--night) 60%, transparent); background-image: linear-gradient(var(--card), var(--card)); border: 1px solid var(--line); border-radius: 16px;
       animation: rise .5s ease both; animation-delay: calc(var(--i) * 70ms);
     }
     .front { display: grid; grid-template-columns: 3.25rem 1fr; gap: 1rem; }
     li:not(.flipped) .back, li.flipped .front { display: none; }
-    li.flipped { background: linear-gradient(160deg, rgba(169, 139, 255, .16), rgba(255, 255, 255, .05)); border-color: rgba(169, 139, 255, .45); }
+    li.flipped { background-image: linear-gradient(160deg, rgba(169, 139, 255, .16), rgba(255, 255, 255, .05)); border-color: rgba(169, 139, 255, .45); }
     .back h3 { margin: 1rem 0 .15rem; color: var(--gold); font: 600 1.15rem/1.25 var(--serif); }
     .back h3 + p { margin: 0; color: var(--muted); font-size: .95rem; }
     li:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
@@ -164,7 +168,11 @@
       back.append(el('p', 'kind', 'The fine print'), el('h2', '', e.title));
       for (const [heading, text] of e.more) back.append(el('h3', '', heading), el('p', '', text));
       li.tabIndex = 0; // the whole card is the control, so keyboards need to reach it
-      li.addEventListener('click', () => flip(li));
+      li.addEventListener('click', () => {
+        const sel = getSelection();
+        if (!sel.isCollapsed && sel.containsNode(li, true)) return; // they were selecting text to copy, not flipping
+        flip(li);
+      });
       li.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); flip(li); } });
       return li;
     }
