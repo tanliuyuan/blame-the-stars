@@ -48,5 +48,6 @@ Vercel deploys `main` automatically. Push and the change is live in under a minu
 ## Files
 
 - `excuses.js`: all astronomy and excuse logic, plus the explanation for each excuse (`WHY`)
+- `details.js`: the specific explanation on the back of each card (this planet pair, this sign...)
 - `index.html`: the page, styles and rendering
 - `test.js`: tests against published ephemeris dates

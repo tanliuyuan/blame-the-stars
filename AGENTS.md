@@ -22,8 +22,11 @@ Read `README.md` first for what the app does and how to run it.
   ♀). Titles for planet-based excuses must start with the planet name.
 - `test.js` matches parts of titles (`pre-shadow`, `Mars in Cancer`, `total solar`), so rewording a title
   can break a test.
-- Excuse `id`s key both `WHY` in `excuses.js` and `LOOK` (category label and symbol) in `index.html`. A new
-  excuse needs an entry in both.
+- Excuse `id`s key `WHY` in `excuses.js`, `LOOK` (category label and symbol) in `index.html`, and the `switch`
+  in `details.js` (the card's back). A new excuse needs an entry in all three.
+- `details.js` reads extra fields that `excuses.js` attaches to each excuse (`a`/`b` for aspects, `planet`/`sign`
+  for debilities, and so on). Its tables are keyed by planet names in the `PLANETS` order of `excuses.js`
+  (`Sun-Mars`, not `Mars-Sun`). `npm test` fails if a combination that can actually happen has no text.
 - Glyphs get `\uFE0E` (the text variation selector) appended so iOS doesn't render ♀ ♂ as emoji. Keep it.
 - `og:image` and the canonical link in `index.html` are absolute URLs on the live domain. Update both if the
   domain changes. `og.png` is a static 1200×630 render; regenerate it if the branding changes.

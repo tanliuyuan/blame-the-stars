@@ -1,4 +1,5 @@
 import * as A from 'astronomy-engine';
+import { details } from './details.js';
 
 const DAY = 864e5;
 const SIGNS = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
@@ -49,15 +50,15 @@ function retrogrades(date) {
   const out = [];
   for (const body of ['Mercury', 'Venus', 'Mars', 'Saturn']) {
     if (speed(body, date) < 0) {
-      out.push({ id: `retrograde:${body}`, title: `${body} is retrograde`, start: flip(body, date, -1), end: flip(body, date, 1) });
+      out.push({ id: `retrograde:${body}`, title: `${body} is retrograde`, planet: body, start: flip(body, date, -1), end: flip(body, date, 1) });
     } else if (body === 'Mercury') {
       const l = lon(body, date);
       const nextR = flip(body, date, 1), nextD = flip(body, nextR, 1);
       const lastD = flip(body, date, -1), lastR = flip(body, new Date(+lastD - DAY), -1);
       if (between(l, lon(body, nextD), lon(body, nextR))) {
-        out.push({ id: 'shadow:Mercury', title: 'Mercury is in its pre-shadow', detail: `The main event starts ${fmtDay(nextR)}` });
+        out.push({ id: 'shadow:Mercury', title: 'Mercury is in its pre-shadow', detail: `The main event starts ${fmtDay(nextR)}`, zone: zone(nextD, nextR) });
       } else if (between(l, lon(body, lastD), lon(body, lastR))) {
-        out.push({ id: 'shadow:Mercury', title: 'Mercury is in its post-shadow', detail: `Officially over since ${fmtDay(lastD)}. Emotionally, not yet.` });
+        out.push({ id: 'shadow:Mercury', title: 'Mercury is in its post-shadow', detail: `Officially over since ${fmtDay(lastD)}. Emotionally, not yet.`, zone: zone(lastD, lastR) });
       }
     }
   }
@@ -70,7 +71,7 @@ function aspects(date) {
   PLANETS.forEach((a, i) => PLANETS.slice(i + 1).forEach((b) => {
     const sep = Math.abs(wrap(l[a] - l[b]));
     const hit = (kind, exact) => Math.abs(sep - exact) <= ORB
-      && out.push({ id: kind, title: `${a} ${{ square: 'square', opposition: 'opposite', conjunction: 'conjunct' }[kind]} ${b}`, detail: `${Math.abs(sep - exact).toFixed(1)}° from exact. Close enough to count.` });
+      && out.push({ id: kind, title: `${a} ${{ square: 'square', opposition: 'opposite', conjunction: 'conjunct' }[kind]} ${b}`, detail: `${Math.abs(sep - exact).toFixed(1)}° from exact. Close enough to count.`, a, b });
     hit('square', 90);
     hit('opposition', 180);
     if ([a, b].some((p) => p === 'Mars' || p === 'Saturn')) hit('conjunction', 0);
@@ -83,7 +84,7 @@ function debilities(date) {
   for (const p of Object.keys(FALL)) {
     const s = sign(lon(p, date));
     for (const [id, table] of [['detriment', DETRIMENT], ['fall', FALL]]) {
-      if (table[p].includes(s)) out.push({ id, title: `${p} in ${SIGNS[s]} is in its ${id}` });
+      if (table[p].includes(s)) out.push({ id, title: `${p} in ${SIGNS[s]} is in its ${id}`, planet: p, sign: SIGNS[s] });
     }
   }
   return out;
@@ -92,14 +93,14 @@ function debilities(date) {
 function moonStuff(date) {
   const out = [];
   if (Math.abs(A.MoonPhase(date) - 180) <= 12) { // the Moon moves ~12° a day against the Sun, so within about a day of full
-    out.push({ id: 'full-moon', title: 'It\'s a full moon', detail: `Peak weirdness ${fmt(A.SearchMoonPhase(180, new Date(+date - 2 * DAY), 4).date)}` });
+    out.push({ id: 'full-moon', title: 'It\'s a full moon', detail: `Peak weirdness ${fmt(A.SearchMoonPhase(180, new Date(+date - 2 * DAY), 4).date)}`, moonSign: SIGNS[sign(lon('Moon', date))], sunSign: SIGNS[sign(lon('Sun', date))] });
   }
   const from = new Date(+date - 20 * DAY);
   const near = [['lunar', A.SearchLunarEclipse(from)], ['solar', A.SearchGlobalSolarEclipse(from)]]
-    .map(([type, e]) => ({ name: `${e.kind} ${type} eclipse`, at: e.peak.date, days: Math.abs(e.peak.date - date) / DAY }))
+    .map(([type, e]) => ({ type, kind: e.kind, name: `${e.kind} ${type} eclipse`, at: e.peak.date, days: Math.abs(e.peak.date - date) / DAY }))
     .filter((e) => e.days <= 17)
     .sort((x, y) => x.days - y.days);
-  if (near[0]?.days <= 1) out.push({ id: 'eclipse', title: `There's a ${near[0].name}`, detail: fmt(near[0].at) });
+  if (near[0]?.days <= 1) out.push({ id: 'eclipse', title: `There's a ${near[0].name}`, detail: fmt(near[0].at), type: near[0].type, kind: near[0].kind });
   else if (near.length) out.push({ id: 'eclipse-season', title: 'It\'s eclipse season', detail: near.map((e) => `${cap(e.name)}: ${fmtDay(e.at)}`).join(' · ') });
   return out;
 }
@@ -117,7 +118,7 @@ export function voidOfCourse(date) {
     if (prev && cur.some((c, i) => Math.abs(c) < 5 && Math.sign(c) !== Math.sign(prev[i]))) return null;
     prev = cur;
   }
-  return { id: 'voc', title: 'The Moon is void of course', detail: `Back from lunch ${fmt(new Date(end))}`, end: new Date(end) };
+  return { id: 'voc', title: 'The Moon is void of course', detail: `Back from lunch ${fmt(new Date(end))}`, end: new Date(end), sign: SIGNS[s], next: SIGNS[(s + 1) % 12] };
 }
 
 // The day's Rahu Kalam window for an observer, in the runtime's local time zone.
@@ -129,8 +130,9 @@ export function rahuKalam(date, latitude, longitude) {
   const set = rise && A.SearchRiseSet('Sun', obs, -1, rise.date, 1);
   if (!set) return null; // polar day or night: no sunrise/sunset to divide
   const part = (set.date - rise.date) / 8;
-  const start = new Date(+rise.date + (RAHU_PART[midnight.getDay()] - 1) * part);
-  return { start, end: new Date(+start + part) };
+  const n = RAHU_PART[midnight.getDay()];
+  const start = new Date(+rise.date + (n - 1) * part);
+  return { start, end: new Date(+start + part), part: n };
 }
 
 export function findExcuses(date = new Date(), coords = null) {
@@ -139,12 +141,15 @@ export function findExcuses(date = new Date(), coords = null) {
   if (voc) out.push(voc);
   const rk = coords && rahuKalam(date, coords.latitude, coords.longitude);
   if (rk && date >= rk.start && date < rk.end) {
-    out.push({ id: 'rahu-kalam', title: 'It\'s Rahu Kalam', detail: `${fmtTime(rk.start)} – ${fmtTime(rk.end)}` });
+    out.push({ id: 'rahu-kalam', title: 'It\'s Rahu Kalam', detail: `${fmtTime(rk.start)} – ${fmtTime(rk.end)}`, part: rk.part, weekday: rk.start.toLocaleDateString(undefined, { weekday: 'long' }) });
   }
-  return out.map((e) => ({ ...e, why: WHY[e.id] }));
+  return out.map((e) => ({ ...e, why: WHY[e.id], more: details(e) }));
 }
 
 const cap = (s) => s[0].toUpperCase() + s.slice(1);
 const fmt = (d) => d.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 const fmtDay = (d) => d.toLocaleDateString(undefined, { dateStyle: 'medium' });
 const fmtTime = (d) => d.toLocaleTimeString(undefined, { timeStyle: 'short' });
+const deg = (l) => `${Math.floor(l % 30)}° ${SIGNS[sign(l)]}`; // l is already 0–360
+// The arc Mercury retraces, from where it turns direct to where it turned retrograde.
+const zone = (direct, retro) => `from ${deg(lon('Mercury', direct))} to ${deg(lon('Mercury', retro))}`;
