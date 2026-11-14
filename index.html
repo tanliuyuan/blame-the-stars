@@ -82,7 +82,17 @@
     }
     button:hover { background: rgba(169, 139, 255, .28); }
     button:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
-    .rahu small { display: block; margin-top: .5rem; color: var(--muted); }
+    .rahu small { position: relative; display: block; margin-top: .5rem; color: var(--muted); }
+    /* "Rahu Kalam" term: hover on desktop, tap (click) on phones, which have no hover. */
+    .tip .term { all: unset; color: var(--ink); border-bottom: 1px dotted var(--violet); cursor: help; }
+    .tip .term:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+    .tip [role="tooltip"] {
+      position: absolute; bottom: calc(100% + .5rem); left: 0; right: 0; margin: 0 auto; max-width: 22rem; z-index: 1;
+      padding: .7rem .9rem; border-radius: 12px; background: #1d1640; border: 1px solid var(--line); color: var(--ink);
+      font-size: .85rem; line-height: 1.45; text-align: left; box-shadow: 0 8px 30px rgba(0, 0, 0, .45);
+      opacity: 0; visibility: hidden; transition: opacity .15s, visibility .15s;
+    }
+    .tip:hover [role="tooltip"], .tip.open [role="tooltip"] { opacity: 1; visibility: visible; }
     footer { margin-top: 3rem; text-align: center; color: var(--muted); font-size: .8rem; }
 
     @media (max-width: 480px) {
@@ -106,7 +116,7 @@
     <ul id="excuses"></ul>
     <div class="rahu" id="rahu">
       <button type="button" id="rahu-btn">☊&#xFE0E; Find even more blame</button>
-      <small id="rahu-note">Checks Rahu Kalam, which needs your local sunrise. Your location stays on your device. Rahu does not need to know where you live.</small>
+      <small id="rahu-note">Checks <span class="tip"><button type="button" class="term" aria-describedby="rk-tip">Rahu Kalam</button><span role="tooltip" id="rk-tip">Rahu Kalam ("Rahu's time") is one eighth of each day's daylight, assigned to Rahu, the shadow planet blamed for eclipses. Which eighth depends on the weekday. Hindu astrology says not to start anything important during it.</span></span>, which needs your local sunrise. Your location stays on your device. Rahu does not need to know where you live.</small>
     </div>
     <footer>Planet positions calculated in your browser with Astronomy Engine.</footer>
   </main>
@@ -182,6 +192,9 @@
     render(null);
     const btn = document.getElementById('rahu-btn'), note = document.getElementById('rahu-note');
     if (!navigator.geolocation) document.getElementById('rahu').hidden = true;
+    const tip = document.querySelector('.tip');
+    tip.querySelector('.term').addEventListener('click', () => tip.classList.toggle('open'));
+    tip.addEventListener('keydown', (e) => { if (e.key === 'Escape') tip.classList.remove('open'); });
     btn.addEventListener('click', () => {
       btn.disabled = true;
       note.textContent = 'Triangulating your sunrise…';
